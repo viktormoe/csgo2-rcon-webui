@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS2 Control Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CS2 Control Panel</h1>
+  
+  <form id="commandForm">
+    <label for="command">Enter RCON Command:</label>
+    <input type="text" id="command" name="command" required>
+    <button type="submit">Send Command</button>
+  </form>
+
+  <hr>
+
+  <h2>Additional Controls</h2>
+
+  <label for="mapSelector">Select Map:</label>
+  <select id="mapSelector" name="map">
+    <option value="de_dust2">Dust 2</option>
+    <option value="cs_office">Office</option>
+    <option value="cs_italy">Italy</option>
+    <option value="de_ancient">Ancient</option>
+    <option value="de_anubis">Anubis</option>
+    <option value="de_inferno">Inferno</option>
+    <option value="de_mirage">Mirage</option>
+    <option value="de_nuke">Nuke</option>
+    <option value="de_overpass">Overpass</option>
+    <option value="de_vertigo">Vertigo</option>
+    <option value="lobby_mapveto">Map Veto</option>
+    <!-- Add more map options as needed -->
+  </select>
+  <button type="button" onclick="sendIndividualCommand('map')">Send</button>
+
+  <br>
+
+  <label for="cheatsDropdown">Enable Cheats:</label>
+  <select id="cheatsDropdown" name="cheats">
+    <option value="1">On</option>
+    <option value="0">Off</option>
+  </select>
+  <button type="button" onclick="sendIndividualCommand('cheats')">Send</button>
+
+  <br>
+
+  <label for="friendlyFireDropdown">Enable Friendly Fire:</label>
+  <select id="friendlyFireDropdown" name="friendlyFire">
+    <option value="1">On</option>
+    <option value="0">Off</option>
+  </select>
+  <button type="button" onclick="sendIndividualCommand('friendlyFire')">Send</button>
+
+  <br>
+
+  <label for="pauseDropdown">Pause/Unpause:</label>
+  <select id="pauseDropdown" name="pause">
+    <option value="pause">Pause</option>
+    <option value="unpause">Unpause</option>
+  </select>
+  <button type="button" onclick="sendIndividualCommand('pause')">Send</button>
+
+  <br>
+
+  <label for="hostname">Change Hostname:</label>
+  <input type="text" id="hostname" name="hostname">
+  <button type="button" onclick="sendIndividualCommand('hostname')">Send</button>
+
+  <br>
+
+  <label for="broadcastMessage">Broadcast Message:</label>
+  <input type="text" id="broadcastMessage" name="broadcastMessage">
+  <button type="button" onclick="sendBroadcastMessage()">Broadcast</button>
+
+  <br>
+
+  <button type="button" onclick="sendAllCommands()">Send All</button>
+
+  <script>
+    document.getElementById('commandForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      const commandInput = document.getElementById('command');
+      const command = commandInput.value;
+
+      const response = await fetch('/sendCommand', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command }),
+      });
+
+      const result = await response.json();
+      // alert(result.success ? `Command sent successfully: ${result.response}` : `Error: ${result.error}`);
+    });
+
+    async function sendBroadcastMessage() {
+      const broadcastMessageInput = document.getElementById('broadcastMessage');
+      const broadcastMessage = broadcastMessageInput.value;
+
+      await fetch('/sendCommand', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: `say ${broadcastMessage}` }),
+      });
+    }
+
+    async function sendIndividualCommand(action) {
+      const mapSelector = document.getElementById('mapSelector');
+      const cheatsDropdown = document.getElementById('cheatsDropdown');
+      const friendlyFireDropdown = document.getElementById('friendlyFireDropdown');
+      const pauseDropdown = document.getElementById('pauseDropdown');
+      const hostnameInput = document.getElementById('hostname');
+
+      let value;
+
+      switch (action) {
+        case 'map':
+          value = mapSelector.value;
+          break;
+        case 'cheats':
+          value = cheatsDropdown.value;
+          break;
+        case 'friendlyFire':
+          value = friendlyFireDropdown.value;
+          break;
+        case 'pause':
+        case 'unpause':
+          value = action;
+          break;
+        case 'hostname':
+          value = hostnameInput.value;
+          break;
+        default:
+          // Handle other actions if needed
+          return;
+      }
+
+      await fetch('/control', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          value,
+        }),
+      });
+    }
+
+    async function sendAllCommands() {
+      await sendIndividualCommand('map');
+      await sendIndividualCommand('cheats');
+      await sendIndividualCommand('friendlyFire');
+      await sendIndividualCommand('pause');
+      await sendIndividualCommand('hostname');
+    }
+  </script>
+</body>
+</html>

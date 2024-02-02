@@ -1,0 +1,5 @@
+{
+  "serverIp": "your_server_ip",
+  "serverPort": "your_server_port",
+  "rconPassword": "your_rcon_password"
+}
